@@ -21,6 +21,7 @@ problems. It does so with the following features:
 - Uses a single window to hold multiple terminals.
 - Intelligently tiles terminals to fit available window size.
 - Scrolls available terminals when they don't all fit in-window.
+- Never resizes a terminal smaller than 80x24 characters.
 - Uses GTK and the VTE widget to provide modern, anti-aliased terminals.
 
 Install
