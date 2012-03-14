@@ -9,6 +9,7 @@ For anyone who needs to administrate clusters of many machines,
 fallback for when the rest of your automation tools aren't working.
 
 However, cssh has a number of deficiencies in modern environments:
+
 - Doesn't play nice with window placement of modern window managers.
 - Doesn't play nice with modern toolkits' copy and paste behaviour.
 - Gets a bit screwy when there's more terminals than can fit on-screen.
@@ -16,6 +17,7 @@ However, cssh has a number of deficiencies in modern environments:
 
 crussh aims to be a simple replacement for cssh that corrects these
 problems. It does so with the following features:
+
 - Uses a single window to hold multiple terminals.
 - Intelligently tiles terminals to fit available window size.
 - Scrolls available terminals when they don't all fit in-window.

@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 # A cssh replacement written in Python / GTK.
-# ©2012 - Graeme Humphries <graeme@sudo.ca>.
+# (c)2012 - Graeme Humphries <graeme@sudo.ca>.
 # Released under the GPL, version 3: http://www.gnu.org/licenses/
 
 # Requires: python-gtk2 python-vte
