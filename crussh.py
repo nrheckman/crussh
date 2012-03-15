@@ -13,12 +13,12 @@ import math
 try:
 	import gtk
 except:
-	print(sys.stderr, "Missing Python GTK2 bindings. (apt-get install python-gtk2)")
+	print(sys.stderr, "Missing Python GTK2 bindings.")
 try:
 	import vte
 except:
 	error = gtk.MessageDialog(None, gtk.DIALOG_MODAL, gtk.MESSAGE_ERROR, gtk.BUTTONS_OK,
-		"Missing Python VTE bindings. (apt-get install python-vte)")
+		"Missing Python VTE bindings.")
 	error.run()
 	sys.exit(1)
 
