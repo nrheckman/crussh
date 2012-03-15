@@ -49,9 +49,9 @@ for host in args.hosts:
 	TermMinHeight = (terminal.get_char_height() * 24) + terminal.get_padding()[1]
 	# TODO: disable only this terminal widget on child exit
 	# v.connect("child-exited", lambda term: gtk.main_quit())
-	cmd = "/usr/bin/ssh"
-	cmd_args = ["-l '" + args.login + "'", "-p " + str(args.port), host]
-	terminal.fork_command(cmd, cmd_args)
+	cmd_str = "/usr/bin/ssh -l " + args.login + " -p " + str(args.port) + " " + host
+	cmd = cmd_str.split(' ')
+	terminal.fork_command(command=cmd[0], argv=cmd)
 	Terminals[host] = terminal
 
 ### Utility Functions and Vars ###
