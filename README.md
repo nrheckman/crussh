@@ -32,6 +32,12 @@ The install process is very simple on most distros:
 - Install python2, python-gtk2, and python-vte.
 - Run ./crussh.py hostname [hostname ...]
 
+Bugs & TODO
+-----------
+
+To see current issues, report problems, and see plans for features,
+see the [crussh GitHub page](https://github.com/unit3/crussh).
+
 Copyright and License
 ---------------------
 
