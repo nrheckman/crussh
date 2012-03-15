@@ -36,7 +36,7 @@ Bugs & TODO
 -----------
 
 To see current issues, report problems, and see plans for features,
-see the [crussh GitHub page](https://github.com/unit3/crussh).
+see the [crussh GitHub issues page](https://github.com/unit3/crussh/issues).
 
 Copyright and License
 ---------------------
