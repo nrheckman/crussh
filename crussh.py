@@ -72,7 +72,7 @@ def reflowTable(cols=1, rows=1):
 def reflow():
 	size = MainWin.allocation
 	cols = int(math.floor((size.width + Table.props.column_spacing) / TermMinWidth))
-	if cols < 1:
+	if cols < 1 or len(args.hosts) == 1:
 		cols = 1
 	rows = int(math.ceil(len(Terminals)/cols))
 	if rows < 1:
@@ -111,6 +111,8 @@ def feed_input(widget, event):
 		for host in Terminals:
 			t_event = event.copy()
 			Terminals[host].event(t_event)
+		# this stops regular handler from firing, switching focus.
+		return True
 EntryBox.connect("key_press_event", feed_input)
 EntryBox.connect("key_release_event", feed_input)
 
