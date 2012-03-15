@@ -53,35 +53,40 @@ class CruSSH:
 		# empty table and re-size
 		hosts = sorted(self.Terminals.keys(), reverse=True)
 		for host in hosts:
-			self.LayoutTable.remove(self.Terminals[host])
+			if self.Terminals[host].parent == self.LayoutTable:
+				self.LayoutTable.remove(self.Terminals[host])
 		self.LayoutTable.resize(rows, cols)
 		# layout terminals
 		for row in range(rows):
 			for col in range(cols):
 				if len(hosts) > 0:
 					host = hosts.pop()
-					self.LayoutTable.attach(self.Terminals[host], col, col+1, row, row+1)
 					self.Terminals[host].set_size(80, 24)
+					self.LayoutTable.attach(self.Terminals[host], col, col+1, row, row+1)
 
-	def reflow(self):
+	def reflow(self, force=False):
 		num_terms = len(self.Terminals)
 		if num_terms < 1:
 			gtk.main_quit()
 		size = self.MainWin.allocation
-		cols = int(math.floor((size.width + self.LayoutTable.props.column_spacing) / self.TermMinWidth))
+		cols = int(math.floor((size.width + self.LayoutTable.props.column_spacing) / float(self.TermMinWidth)))
 		if cols < 1 or num_terms == 1:
 			cols = 1
-		rows = int(math.ceil(num_terms/cols))
+		rows = int(math.ceil(num_terms/float(cols)))
 		if rows < 1:
 			rows = 1
-		if (self.LayoutTable.props.n_columns != cols) or (self.LayoutTable.props.n_rows != rows):
+		if (self.LayoutTable.props.n_columns != cols) or (self.LayoutTable.props.n_rows != rows) or force:
 			self.reflowTable(cols, rows)	
 		self.MainWin.show_all()
 
 	def removeTerminal(self, terminal):
-		# TODO: make this work. ;)
-		# del self.Terminals[terminal.props.window_title]
-		self.reflow()
+		# brute force search since we don't actually know the hostname from the
+		# terminal object. this is an infrequent operation, so it should be fine.
+		for host in self.Terminals.keys():
+			if terminal == self.Terminals[host]:
+				self.LayoutTable.remove(self.Terminals[host])
+				del self.Terminals[host]
+		self.reflow(force=True)
 
 	def initGUI(self):
 		self.MainWin.set_title("crussh: " + ' '.join(self.Terminals.keys()))
