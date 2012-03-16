@@ -7,8 +7,6 @@
 # Requires: python-gtk2 python-vte
 
 import sys
-import argparse
-import getpass
 import math
 try:
 	import gtk
@@ -20,17 +18,6 @@ except:
 	error = gtk.MessageDialog(None, gtk.DIALOG_MODAL, gtk.MESSAGE_ERROR, gtk.BUTTONS_OK,
 		"Missing Python VTE bindings.")
 	error.run()
-	sys.exit(1)
-
-### Parse CLI Args ###
-parser = argparse.ArgumentParser(description="Connect to multiple servers in parallel.", usage="%(prog)s [OPTIONS] HOST [HOST ...]")
-parser.add_argument('-s', '--fontsize', dest='fontsize', type=int, default=10,
-	help="Font size to use. (default=10)")
-
-(args, hosts) = parser.parse_known_args()
-
-if len(hosts) == 0:
-	parser.print_usage()
 	sys.exit(1)
 
 ### CruSSH! ###
@@ -136,13 +123,7 @@ class CruSSH:
 		# give EntryBox default focus on init
 		self.EntryBox.props.has_focus = True
 
-	def __init__(self, hosts):
-		ssh_args = None
-		if "--" in hosts:
-			offset = hosts.index("--") + 1
-			ssh_args = " ".join(hosts[0:offset])
-			hosts = hosts[offset:]
-
+	def __init__(self, hosts, ssh_args=None):
 		# init all terminals
 		for host in hosts:
 			terminal = vte.Terminal()
@@ -166,6 +147,27 @@ class CruSSH:
 		self.initGUI()
 		self.reflow(force=True)
 
-### Start Execution ###
-crussh = CruSSH(hosts)
-gtk.main()
+if __name__ == "__main__":
+	import argparse
+
+	### Parse CLI Args ###
+	parser = argparse.ArgumentParser(description="Connect to multiple servers in parallel.", usage="%(prog)s [OPTIONS] HOST [HOST ...]")
+	parser.add_argument('-s', '--fontsize', dest='fontsize', type=int, default=10,
+	help="Font size to use. (default=10)")
+
+	(args, hosts) = parser.parse_known_args()
+
+	if len(hosts) == 0:
+		parser.print_usage()
+		sys.exit(1)
+
+	if "--" in hosts:
+		offset = hosts.index("--") + 1
+		ssh_args = " ".join(hosts[0:offset])
+		hosts = hosts[offset:]
+	else:
+		ssh_args = None
+
+	### Start Execution ###
+	crussh = CruSSH(hosts, ssh_args)
+	gtk.main()
