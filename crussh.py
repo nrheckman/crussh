@@ -9,6 +9,7 @@
 import sys
 import math
 import json
+import os.path
 try:
 	import gtk
 except:
@@ -28,7 +29,7 @@ class CruSSHConf:
 	MainWin = gtk.Window()
 
 	### Signal Hooks ###
-	def destroy_hook(self, discard, save_func):
+	def save_hook(self, discard, save_func):
 		self.MainWin.destroy()
 		if save_func != None:
 			save_func(self.Config)
@@ -67,7 +68,8 @@ class CruSSHConf:
 		OpacityAdj = gtk.Adjustment(upper=65535, step_incr=1, value=self.Config["opacity"])
 		OpacityScale = gtk.HScale(OpacityAdj)
 		OpacityScale.set_draw_value(False)
-		OpacityScale.connect("value-changed", self.opacity_hook)
+		# disconnect this until we get it working.
+		# OpacityScale.connect("value-changed", self.opacity_hook)
 		TermConfTable.attach(OpacityScale, 2, 3, 2, 3)
 
 		ConfirmBox = gtk.HBox(spacing=5)
@@ -79,7 +81,7 @@ class CruSSHConf:
 		
 		# wire up behaviour
 		CancelButton.connect("clicked", lambda discard: self.MainWin.destroy())
-		SaveButton.connect("clicked", self.destroy_hook, save_func)
+		SaveButton.connect("clicked", self.save_hook, save_func)
 
 		self.MainWin.show_all()
 
@@ -95,8 +97,6 @@ class CruSSH:
 	### Config Vars ###
 	# config defaults
 	Config = {
-		"login": None,
-		"port": None,
 		"font": "Ubuntu Mono Bold 10",
 		"opacity": 65535
 		}
@@ -191,6 +191,14 @@ class CruSSH:
 			self.Config = new_config
 			self.configTerminals()
 			self.reflow()
+			# save to file last, so it doesn't hold up other GUI actions
+			conf_json = json.dumps(self.Config, sort_keys=True, indent=4)
+			try:
+				conf_file = open(os.path.expanduser("~/.crusshrc"), 'w')
+				conf_file.write(conf_json)
+				conf_file.close()
+			except:
+				pass
 		PrefsItem.connect("activate", lambda discard: CruSSHConf(self.Config, save_func))
 		EditMenu.append(PrefsItem)
 		MainMenuBar.append(EditItem)
@@ -233,8 +241,9 @@ class CruSSH:
 	def __init__(self, hosts, ssh_args=None):
 		# load existing config file, if present
 		try:
-			Config = json.load(open('~/.crusshrc'))
+			self.Config = json.load(open(os.path.expanduser('~/.crusshrc')))
 		except Exception as e:
+			print(e)
 			pass
 
 		# init all terminals
