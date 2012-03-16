@@ -23,17 +23,15 @@ except:
 	sys.exit(1)
 
 ### Parse CLI Args ###
-parser = argparse.ArgumentParser(description="Connect to multiple servers in parallel.")
-parser.add_argument('hosts', metavar='HOST', nargs='+',
-	help="Host(s) to connect to.")
-parser.add_argument('-l', '--login', dest='login', default=None,
-	help="Login name to use.")
-parser.add_argument('-p', '--port', dest='port', type=int, default=None,
-	help="Alternate SSH port to use.")
+parser = argparse.ArgumentParser(description="Connect to multiple servers in parallel.", usage="%(prog)s [OPTIONS] HOST [HOST ...]")
 parser.add_argument('-s', '--fontsize', dest='fontsize', type=int, default=10,
 	help="Font size to use. (default=10)")
 
-args = parser.parse_args()
+(args, hosts) = parser.parse_known_args()
+
+if len(hosts) == 0:
+	parser.print_usage()
+	sys.exit(1)
 
 ### CruSSH! ###
 class CruSSH:
@@ -138,9 +136,12 @@ class CruSSH:
 		# give EntryBox default focus on init
 		self.EntryBox.props.has_focus = True
 
-	def __init__(self, hosts, login=None, port=None):
-		self.Config["login"] = login
-		self.Config["port"] = port
+	def __init__(self, hosts):
+		ssh_args = None
+		if "--" in hosts:
+			offset = hosts.index("--") + 1
+			ssh_args = " ".join(hosts[0:offset])
+			hosts = hosts[offset:]
 
 		# init all terminals
 		for host in hosts:
@@ -152,10 +153,8 @@ class CruSSH:
 			# TODO: disable only this terminal widget on child exit
 			# v.connect("child-exited", lambda term: gtk.main_quit())
 			cmd_str = "/usr/bin/ssh"
-			if self.Config["login"] != None:
-				cmd_str += " -l " + args.login
-			if self.Config["port"] != None:
-				cmd_str += " -p " + str(args.port)
+			if ssh_args is not None:
+				cmd_str += " " + ssh_args
 			cmd_str += " " + host
 			cmd = cmd_str.split(' ')
 			terminal.fork_command(command=cmd[0], argv=cmd)
@@ -168,5 +167,5 @@ class CruSSH:
 		self.reflow(force=True)
 
 ### Start Execution ###
-crussh = CruSSH(args.hosts, args.login, args.port)
+crussh = CruSSH(hosts)
 gtk.main()
