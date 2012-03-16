@@ -236,7 +236,7 @@ class CruSSH:
 			Config = json.load(open('~/.crusshrc'))
 		except Exception as e:
 			pass
-		
+
 		# init all terminals
 		for host in hosts:
 			terminal = vte.Terminal()
@@ -263,9 +263,6 @@ if __name__ == "__main__":
 
 	### Parse CLI Args ###
 	parser = argparse.ArgumentParser(description="Connect to multiple servers in parallel.", usage="%(prog)s [OPTIONS] HOST [HOST ...]")
-	parser.add_argument('-s', '--fontsize', dest='fontsize', type=int, default=10,
-	help="Font size to use. (default=10)")
-
 	(args, hosts) = parser.parse_known_args()
 
 	if len(hosts) == 0:
