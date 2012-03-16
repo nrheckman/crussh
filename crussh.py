@@ -37,6 +37,9 @@ args = parser.parse_args()
 
 ### CruSSH! ###
 class CruSSH:
+	### Config Vars ###
+	Config = {}
+
 	### State Vars ###
 	Terminals = {}
 	TermMinWidth = 1
@@ -65,13 +68,17 @@ class CruSSH:
 					self.LayoutTable.attach(self.Terminals[host], col, col+1, row, row+1)
 
 	def reflow(self, force=False):
-		num_terms = len(self.Terminals)
+		num_terms = len(self.Terminals.keys())
 		if num_terms < 1:
 			gtk.main_quit()
+			# main_quit desn't happen immediately
+			return False
 		size = self.MainWin.allocation
 		cols = int(math.floor((size.width + self.LayoutTable.props.column_spacing) / float(self.TermMinWidth)))
 		if cols < 1 or num_terms == 1:
 			cols = 1
+		elif cols > num_terms:
+			cols = num_terms
 		rows = int(math.ceil(num_terms/float(cols)))
 		if rows < 1:
 			rows = 1
@@ -131,7 +138,10 @@ class CruSSH:
 		# give EntryBox default focus on init
 		self.EntryBox.props.has_focus = True
 
-	def __init__(self, hosts):
+	def __init__(self, hosts, login=None, port=None):
+		self.Config["login"] = login
+		self.Config["port"] = port
+
 		# init all terminals
 		for host in hosts:
 			terminal = vte.Terminal()
@@ -142,9 +152,9 @@ class CruSSH:
 			# TODO: disable only this terminal widget on child exit
 			# v.connect("child-exited", lambda term: gtk.main_quit())
 			cmd_str = "/usr/bin/ssh"
-			if args.login != None:
+			if self.Config["login"] != None:
 				cmd_str += " -l " + args.login
-			if args.port != None:
+			if self.Config["port"] != None:
 				cmd_str += " -p " + str(args.port)
 			cmd_str += " " + host
 			cmd = cmd_str.split(' ')
@@ -155,8 +165,8 @@ class CruSSH:
 			self.Terminals[host].connect("child-exited", self.removeTerminal)
 
 		self.initGUI()
-		self.reflow()
+		self.reflow(force=True)
 
 ### Start Execution ###
-crussh = CruSSH(args.hosts)
+crussh = CruSSH(args.hosts, args.login, args.port)
 gtk.main()
