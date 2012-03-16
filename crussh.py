@@ -166,6 +166,12 @@ class CruSSH:
 		self.reflow(force=True)
 
 	def initGUI(self):
+		theme = gtk.icon_theme_get_default()
+		icon_list = []
+		if theme.has_icon("terminal"):
+				icon = theme.lookup_icon("terminal", 128, flags=gtk.ICON_LOOKUP_USE_BUILTIN)
+				if icon != None:
+					gtk.window_set_default_icon(icon.load_icon())
 		self.MainWin.set_title("crussh: " + ' '.join(self.Terminals.keys()))
 		self.MainWin.set_role(role="crussh_main_win")
 		self.MainWin.connect("delete-event", lambda window, event: gtk.main_quit())
