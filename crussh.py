@@ -41,7 +41,7 @@ class CruSSHConf:
 		self.Config["opacity"] = range.get_value()
 
 	### GUI Objects ###
-	def initGUI(self, save_func = None):
+	def initGUI(self, save_func=None):
 		self.MainWin.set_modal(True)
 		self.MainWin.props.allow_grow = False
 
