@@ -31,7 +31,7 @@ class CruSSHConf:
 	### Signal Hooks ###
 	def save_hook(self, discard, save_func):
 		self.MainWin.destroy()
-		if save_func != None:
+		if save_func is not None:
 			save_func(self.Config)
 
 	def font_hook(self, fontbutton):
@@ -87,7 +87,7 @@ class CruSSHConf:
 
 	# we'll wire up a supplied save_func that takes the Config dict as an argument.
 	def __init__(self, config=None, save_func=None):
-		if config != None:
+		if config is not None:
 			self.Config = config
 
 		self.initGUI(save_func)
@@ -169,9 +169,9 @@ class CruSSH:
 		theme = gtk.icon_theme_get_default()
 		icon_list = []
 		if theme.has_icon("terminal"):
-				icon = theme.lookup_icon("terminal", 128, flags=gtk.ICON_LOOKUP_USE_BUILTIN)
-				if icon != None:
-					gtk.window_set_default_icon(icon.load_icon())
+			icon = theme.lookup_icon("terminal", 128, flags=gtk.ICON_LOOKUP_USE_BUILTIN)
+			if icon is not None:
+				gtk.window_set_default_icon(icon.load_icon())
 		self.MainWin.set_title("crussh: " + ' '.join(self.Terminals.keys()))
 		self.MainWin.set_role(role="crussh_main_win")
 		self.MainWin.connect("delete-event", lambda window, event: gtk.main_quit())
