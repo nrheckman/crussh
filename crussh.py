@@ -40,6 +40,12 @@ class CruSSHConf:
 	def opacity_hook(self, range):
 		self.Config["opacity"] = range.get_value()
 
+	def width_hook(self, spinbutton):
+		self.Config["min-width"] = spinbutton.get_value_as_int()
+
+	def height_hook(self, spinbutton):
+		self.Config["min-height"] = spinbutton.get_value_as_int()
+
 	### GUI Objects ###
 	def initGUI(self, save_func = None):
 		self.MainWin.set_modal(True)
@@ -50,27 +56,38 @@ class CruSSHConf:
 		self.MainWin.add(MainBox)
 		
 		TermConfFrame = gtk.Frame(label="Terminal Options")
-		TermConfTable = gtk.Table(2, 2)
+		TermConfTable = gtk.Table(3, 2)
 		TermConfTable.props.border_width = 5
 		TermConfTable.props.row_spacing = 5
 		TermConfTable.props.column_spacing = 5
 		TermConfFrame.add(TermConfTable)
 		MainBox.pack_start(TermConfFrame)
 
-		FontLabel = gtk.Label("Font:")
-		TermConfTable.attach(FontLabel, 1, 2, 1, 2, gtk.EXPAND)
+		TermConfTable.attach(gtk.Label("Font:"), 1, 2, 1, 2, gtk.EXPAND)
 		FontConf = gtk.FontButton(fontname=self.Config["font"])
 		FontConf.connect("font-set", self.font_hook)
 		TermConfTable.attach(FontConf, 2, 3, 1, 2, gtk.EXPAND)
 
+		SizeBox = gtk.HBox()
+		SizeBox.props.spacing = 5
+		TermConfTable.attach(SizeBox, 1, 3, 2, 3)
+		SizeBox.pack_start(gtk.Label("Min Width:"), fill=False, expand=False)
+		WidthEntry = gtk.SpinButton(gtk.Adjustment(value=self.Config["min-width"], lower=1, upper=9999, step_incr=1))
+		WidthEntry.connect("value-changed", self.width_hook)
+		SizeBox.pack_start(WidthEntry, fill=False, expand=False)
+		SizeBox.pack_start(gtk.Label("Min Height:"), fill=False, expand=False)
+		HeightEntry = gtk.SpinButton(gtk.Adjustment(value=self.Config["min-height"], lower=1, upper=9999, step_incr=1))
+		HeightEntry.connect("value-changed", self.height_hook)
+		SizeBox.pack_start(HeightEntry, fill=False, expand=False)
+
 		OpacityLabel = gtk.Label("Opacity:")
-		TermConfTable.attach(OpacityLabel, 1, 2, 2, 3, gtk.EXPAND)
+		TermConfTable.attach(OpacityLabel, 1, 2, 3, 4, gtk.EXPAND)
 		OpacityAdj = gtk.Adjustment(upper=65535, step_incr=1, value=self.Config["opacity"])
 		OpacityScale = gtk.HScale(OpacityAdj)
 		OpacityScale.set_draw_value(False)
 		# disconnect this until we get it working.
 		# OpacityScale.connect("value-changed", self.opacity_hook)
-		TermConfTable.attach(OpacityScale, 2, 3, 2, 3)
+		TermConfTable.attach(OpacityScale, 2, 3, 3, 4)
 
 		ConfirmBox = gtk.HBox(spacing=5)
 		CancelButton = gtk.Button(stock=gtk.STOCK_CANCEL)
@@ -97,6 +114,8 @@ class CruSSH:
 	### Config Vars ###
 	# config defaults
 	Config = {
+		"min-width": 80,
+		"min-height": 24,
 		"font": "Ubuntu Mono Bold 10",
 		"opacity": 65535
 		}
@@ -125,10 +144,13 @@ class CruSSH:
 			for col in range(cols):
 				if len(hosts) > 0:
 					host = hosts.pop()
-					self.Terminals[host].set_size(80, 24)
+					self.Terminals[host].set_size(self.Config["min-width"], self.Config["min-height"])
 					self.LayoutTable.attach(self.Terminals[host], col, col+1, row, row+1)
 
 	def reflow(self, force=False):
+		# reconfigure before updating rows and columns
+		self.configTerminals()
+
 		num_terms = len(self.Terminals.keys())
 		if num_terms < 1:
 			gtk.main_quit()
@@ -150,11 +172,11 @@ class CruSSH:
 	def configTerminals(self):
 		for host in self.Terminals:
 			terminal = self.Terminals[host]
-			terminal.set_size(80, 24)
+			terminal.set_size(self.Config["min-width"], self.Config["min-height"])
 			terminal.set_font_from_string(self.Config["font"])
 			terminal.set_opacity(int(self.Config["opacity"]))
-			self.TermMinWidth = (terminal.get_char_width() * 80) + terminal.get_padding()[0]
-			self.TermMinHeight = (terminal.get_char_height() * 24) + terminal.get_padding()[1]
+			self.TermMinWidth = (terminal.get_char_width() * self.Config["min-width"]) + terminal.get_padding()[0]
+			self.TermMinHeight = (terminal.get_char_height() * self.Config["min-height"]) + terminal.get_padding()[1]
 
 	def removeTerminal(self, terminal):
 		# brute force search since we don't actually know the hostname from the
@@ -195,8 +217,7 @@ class CruSSH:
 		PrefsItem = gtk.MenuItem(label="Preferences")
 		def save_func(new_config):
 			self.Config = new_config
-			self.configTerminals()
-			self.reflow()
+			self.reflow(force=True)
 			# save to file last, so it doesn't hold up other GUI actions
 			conf_json = json.dumps(self.Config, sort_keys=True, indent=4)
 			try:
@@ -247,7 +268,9 @@ class CruSSH:
 	def __init__(self, hosts, ssh_args=None):
 		# load existing config file, if present
 		try:
-			self.Config = json.load(open(os.path.expanduser('~/.crusshrc')))
+			# merge dicts to allow upgrade from old configs
+			new_config = json.load(open(os.path.expanduser('~/.crusshrc')))
+			self.Config.update(new_config)
 		except:
 			pass
 
