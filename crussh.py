@@ -248,8 +248,7 @@ class CruSSH:
 		# load existing config file, if present
 		try:
 			self.Config = json.load(open(os.path.expanduser('~/.crusshrc')))
-		except Exception as e:
-			print(e)
+		except:
 			pass
 
 		# init all terminals
