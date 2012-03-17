@@ -80,8 +80,7 @@ class CruSSHConf:
 		HeightEntry.connect("value-changed", self.height_hook)
 		SizeBox.pack_start(HeightEntry, fill=False, expand=False)
 
-		OpacityLabel = gtk.Label("Opacity:")
-		TermConfTable.attach(OpacityLabel, 1, 2, 3, 4, gtk.EXPAND)
+		TermConfTable.attach(gtk.Label("Opacity:"), 1, 2, 3, 4, gtk.EXPAND)
 		OpacityAdj = gtk.Adjustment(upper=65535, step_incr=1, value=self.Config["opacity"])
 		OpacityScale = gtk.HScale(OpacityAdj)
 		OpacityScale.set_draw_value(False)
