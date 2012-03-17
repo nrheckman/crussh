@@ -277,12 +277,15 @@ if __name__ == "__main__":
 	import argparse
 
 	### Parse CLI Args ###
-	parser = argparse.ArgumentParser(description="Connect to multiple servers in parallel.", usage="%(prog)s [OPTIONS] HOST [HOST ...]")
+	parser = argparse.ArgumentParser(
+		description="Connect to multiple servers in parallel.", 
+		usage="%(prog)s [OPTIONS] [--] HOST [HOST ...]",
+		epilog="* NOTE: You can pass options to ssh if you add '--' before your list of hosts")
 	(args, hosts) = parser.parse_known_args()
 
 	if len(hosts) == 0:
 		parser.print_usage()
-		sys.exit(1)
+		parser.exit(2)
 
 	if "--" in hosts:
 		offset = hosts.index("--") + 1
