@@ -10,16 +10,17 @@ import sys
 import math
 import json
 import os.path
+
 try:
 	import gtk
 except:
-	print(sys.stderr, "Missing Python GTK2 bindings.")
+	print >>sys.stderr, "Missing Python GTK2 bindings."
+	sys.exit(1)
+
 try:
 	import vte
 except:
-	error = gtk.MessageDialog(None, gtk.DIALOG_MODAL, gtk.MESSAGE_ERROR, gtk.BUTTONS_OK,
-		"Missing Python VTE bindings.")
-	error.run()
+	print >>sys.stderr, "Missing Python VTE bindings."
 	sys.exit(1)
 
 ### Config Dialog ###
@@ -47,7 +48,7 @@ class CruSSHConf:
 		self.Config["min-height"] = spinbutton.get_value_as_int()
 
 	### GUI Objects ###
-	def initGUI(self, save_func = None):
+	def initGUI(self, save_func=None):
 		self.MainWin.set_modal(True)
 		self.MainWin.props.allow_grow = False
 
