@@ -30,7 +30,7 @@ Install
 The install process is very simple on most distros:
 
 - Install python2, python-gtk2, and python-vte.
-- Run ./crussh.py hostname [hostname ...]
+- Run ./crussh.py HOST [HOST ...]
 
 Bugs & TODO
 -----------
