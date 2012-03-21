@@ -172,6 +172,8 @@ class CruSSH:
 	def configTerminals(self):
 		for host in self.Terminals:
 			terminal = self.Terminals[host]
+			# -1 == infinite scrollback
+			terminal.set_scrollback_lines(-1)
 			terminal.set_size(self.Config["min-width"], self.Config["min-height"])
 			terminal.set_font_from_string(self.Config["font"])
 			terminal.set_opacity(int(self.Config["opacity"]))
