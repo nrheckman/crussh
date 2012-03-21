@@ -265,7 +265,7 @@ class CruSSH:
 		# give EntryBox default focus on init
 		self.EntryBox.props.has_focus = True
 
-	def __init__(self, hosts, ssh_cmd="/usr/bin/ssh"):
+	def __init__(self, hosts, ssh_cmd="/usr/bin/ssh", ssh_args=None):
 		# load existing config file, if present
 		try:
 			# merge dicts to allow upgrade from old configs
@@ -279,7 +279,10 @@ class CruSSH:
 			terminal = vte.Terminal()
 			# TODO: disable only this terminal widget on child exit
 			# v.connect("child-exited", lambda term: gtk.main_quit())
-			cmd_str = "%s %s" % (ssh_cmd, host)
+			cmd_str = ssh_cmd
+			if ssh_args is not None:
+				cmd_str += " " + ssh_args
+			cmd_str += " " + host
 			cmd = cmd_str.split(' ')
 			terminal.fork_command(command=cmd[0], argv=cmd)
 			self.Terminals[host] = terminal
@@ -296,13 +299,26 @@ if __name__ == "__main__":
 	import argparse
 
 	### Parse CLI Args ###
-	parser = argparse.ArgumentParser(description="Connect to multiple servers in parallel.")
-	parser.add_argument('hosts', metavar='HOST', nargs='+',
-		help="Host(s) to connect to.")
+	parser = argparse.ArgumentParser(
+		description="Connect to multiple hosts in parallel.", 
+		usage="%(prog)s [OPTIONS] [--] HOST [HOST ...]",
+		epilog="* NOTE: You can pass options to ssh if you add '--' before your list of hosts")
 	parser.add_argument("--ssh", dest='ssh', default="/usr/bin/ssh",
-		help="SSH executable and optional arguments (ex: --ssh 'ssh -l root')")
-	args = parser.parse_args()
+		help="specify the SSH executable to use (default: %(default)s)")
+	(args, hosts) = parser.parse_known_args()
+
+	if len(hosts) == 0:
+		parser.print_usage()
+		parser.exit(2)
+
+	try:
+		offset = hosts.index("--")
+	except:
+		ssh_args = None
+	else:
+		ssh_args = " ".join(hosts[0:offset])
+		hosts = hosts[offset + 1:]
 
 	### Start Execution ###
-	crussh = CruSSH(args.hosts, args.ssh)
+	crussh = CruSSH(hosts, args.ssh, ssh_args)
 	gtk.main()
