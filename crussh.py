@@ -132,6 +132,7 @@ class CruSSH:
     ScrollWin = gtk.ScrolledWindow()
     LayoutTable = gtk.Table()
     EntryBox = gtk.Entry()
+    Clipboard = gtk.Clipboard()
 
     ### Methods ###
     def reflowTable(self, cols=1, rows=1):
@@ -251,17 +252,21 @@ class CruSSH:
 
         # forward key events to all terminals
         def feed_input(widget, event):
-            if event.type in [gtk.gdk.KEY_PRESS, gtk.gdk.KEY_RELEASE]:
-                # erase buffer on every entry, so that passwords aren't revealed
-                self.EntryBox.props.buffer.delete_text(0, -1)
-                # propagate to every terminal
-                for host in self.Terminals:
-                    t_event = event.copy()
-                    self.Terminals[host].event(t_event)
-                # this stops regular handler from firing, switching focus.
-                return True
+            self.EntryBox.props.buffer.delete_text(0, -1)
+            # propagate to every terminal
+            for host in self.Terminals:
+                t_event = event.copy()
+                self.Terminals[host].event(t_event)
+            # this stops regular handler from firing, switching focus.
+            return True
+        def feed_paste(widget):
+            for host in self.Terminals:
+                self.Terminals[host].feed_child(self.Clipboard.wait_for_text())
+            self.EntryBox.props.buffer.delete_text(0, -1)
+
         self.EntryBox.connect("key_press_event", feed_input)
         self.EntryBox.connect("key_release_event", feed_input)
+        self.EntryBox.connect("paste_clipboard", feed_paste)
         MainVBox.pack_start(self.EntryBox, False, False)
 
         # reflow layout on size change.
