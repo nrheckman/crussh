@@ -39,9 +39,6 @@ class CruSSHConf:
     def font_hook(self, fontbutton):
         self.Config["font"] = fontbutton.get_font_name()
 
-    def opacity_hook(self, range):
-        self.Config["opacity"] = range.get_value()
-
     def width_hook(self, spinbutton):
         self.Config["min-width"] = spinbutton.get_value_as_int()
 
@@ -82,14 +79,6 @@ class CruSSHConf:
         HeightEntry.connect("value-changed", self.height_hook)
         SizeBox.pack_start(HeightEntry, fill=False, expand=False)
 
-        TermConfTable.attach(gtk.Label("Opacity:"), 1, 2, 3, 4, gtk.EXPAND)
-        OpacityAdj = gtk.Adjustment(upper=65535, step_incr=1, value=self.Config["opacity"])
-        OpacityScale = gtk.HScale(OpacityAdj)
-        OpacityScale.set_draw_value(False)
-        # disconnect this until we get it working.
-        # OpacityScale.connect("value-changed", self.opacity_hook)
-        TermConfTable.attach(OpacityScale, 2, 3, 3, 4)
-
         ConfirmBox = gtk.HBox(spacing=5)
         CancelButton = gtk.Button(stock=gtk.STOCK_CANCEL)
         ConfirmBox.pack_start(CancelButton, fill=False)
@@ -118,8 +107,7 @@ class CruSSH:
     Config = {
         "min-width": 80,
         "min-height": 24,
-        "font": "Ubuntu Mono Bold 10",
-        "opacity": 65535
+        "font": "Ubuntu Mono Bold 10"
         }
 
     ### State Vars ###
@@ -181,7 +169,6 @@ class CruSSH:
             terminal.set_scrollback_lines(-1)
             terminal.set_size(self.Config["min-width"], self.Config["min-height"])
             terminal.set_font_from_string(self.Config["font"])
-            terminal.set_opacity(int(self.Config["opacity"]))
             self.TermMinWidth = (terminal.get_char_width() * self.Config["min-width"]) + terminal.get_padding()[0]
             self.TermMinHeight = (terminal.get_char_height() * self.Config["min-height"]) + terminal.get_padding()[1]
 
