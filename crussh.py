@@ -133,6 +133,7 @@ class CruSSH:
     LayoutTable = gtk.Table()
     EntryBox = gtk.Entry()
     Clipboard = gtk.Clipboard()
+    ActiveHostsMenu = gtk.Menu()
 
     ### Methods ###
     def reflowTable(self, cols=1, rows=1):
@@ -219,6 +220,19 @@ class CruSSH:
         EditItem = gtk.MenuItem(label="Edit")
         EditMenu = gtk.Menu()
         EditItem.set_submenu(EditMenu)
+
+        def toggle_func(checkitem, host):
+            self.Terminals[host].copy_input = checkitem.get_active()
+        ActiveHostsItem = gtk.MenuItem(label="Active Hosts")
+        ActiveHostsItem.set_submenu(self.ActiveHostsMenu)
+        hosts = sorted(self.Terminals.keys(), reverse=True)
+        for host in hosts:
+            hostitem = gtk.CheckMenuItem(label=host)
+            hostitem.set_active(True)
+            hostitem.connect("toggled", toggle_func, host)
+            self.ActiveHostsMenu.append(hostitem)
+
+        EditMenu.append(ActiveHostsItem)
         PrefsItem = gtk.MenuItem(label="Preferences")
 
         def save_func(new_config):
@@ -251,18 +265,21 @@ class CruSSH:
         self.EntryBox.set_visibility(False)
         self.EntryBox.set_invisible_char(' ')
 
-        # forward key events to all terminals
+        # forward key events to all terminals with copy_input set
         def feed_input(widget, event):
             self.EntryBox.props.buffer.delete_text(0, -1)
             # propagate to every terminal
             for host in self.Terminals:
                 t_event = event.copy()
-                self.Terminals[host].event(t_event)
+                if self.Terminals[host].copy_input:
+                    self.Terminals[host].event(t_event)
             # this stops regular handler from firing, switching focus.
             return True
+
         def feed_paste(widget):
             for host in self.Terminals:
-                self.Terminals[host].feed_child(self.Clipboard.wait_for_text())
+                if self.Terminals[host].copy_input:
+                    self.Terminals[host].feed_child(self.Clipboard.wait_for_text())
             self.EntryBox.props.buffer.delete_text(0, -1)
 
         self.EntryBox.connect("key_press_event", feed_input)
@@ -296,6 +313,8 @@ class CruSSH:
             cmd_str += " " + host
             cmd = cmd_str.split(' ')
             terminal.fork_command(command=cmd[0], argv=cmd)
+            # track whether we mirror output to this terminal
+            terminal.copy_input = True
             self.Terminals[host] = terminal
 
             # hook terminals so they reflow layout on exit
