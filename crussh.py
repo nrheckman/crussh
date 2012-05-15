@@ -148,6 +148,7 @@ class CruSSH:
                 if len(hosts) > 0:
                     host = hosts.pop()
                     self.Terminals[host].set_size(self.Config["min-width"], self.Config["min-height"])
+                    self.Terminals[host].set_tooltip_text(host)
                     self.LayoutTable.attach(self.Terminals[host], col, col + 1, row, row + 1)
 
     def reflow(self, force=False):
