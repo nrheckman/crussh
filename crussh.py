@@ -282,9 +282,15 @@ class CruSSH:
                     self.Terminals[host].feed_child(self.Clipboard.wait_for_text())
             self.EntryBox.props.buffer.delete_text(0, -1)
 
+        def click_handler(widget, event):
+            # if middle click
+            if event.button == 2:
+                feed_input(widget, event)
+
         self.EntryBox.connect("key_press_event", feed_input)
         self.EntryBox.connect("key_release_event", feed_input)
         self.EntryBox.connect("paste_clipboard", feed_paste)
+        self.EntryBox.connect("button_press_event", click_handler)
         MainVBox.pack_start(self.EntryBox, False, False)
 
         # reflow layout on size change.
