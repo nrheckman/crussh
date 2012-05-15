@@ -265,22 +265,30 @@ class CruSSH:
         self.EntryBox.set_visibility(False)
         self.EntryBox.set_invisible_char(' ')
 
-        # forward key events to all terminals with copy_input set
-        def feed_input(widget, event):
-            self.EntryBox.props.buffer.delete_text(0, -1)
-            # propagate to every terminal
-            for host in self.Terminals:
-                t_event = event.copy()
-                if self.Terminals[host].copy_input:
-                    self.Terminals[host].event(t_event)
-            # this stops regular handler from firing, switching focus.
-            return True
-
+        # feed GNOME clipboard to all active terminals
         def feed_paste(widget):
             for host in self.Terminals:
                 if self.Terminals[host].copy_input:
                     self.Terminals[host].feed_child(self.Clipboard.wait_for_text())
             self.EntryBox.props.buffer.delete_text(0, -1)
+
+        # forward key events to all terminals with copy_input set
+        def feed_input(widget, event):
+            self.EntryBox.props.buffer.delete_text(0, -1)
+            # check for paste key shortcut (ctl-shift-v)
+            if (event.type == gtk.gdk.KEY_PRESS) \
+            and (event.state & gtk.gdk.CONTROL_MASK == gtk.gdk.CONTROL_MASK) \
+            and (event.state & gtk.gdk.SHIFT_MASK == gtk.gdk.SHIFT_MASK) \
+            and (event.keyval == 86):
+                feed_paste(widget)
+            else:
+                # propagate to every terminal
+                for host in self.Terminals:
+                    t_event = event.copy()
+                    if self.Terminals[host].copy_input:
+                        self.Terminals[host].event(t_event)
+            # this stops regular handler from firing, switching focus.
+            return True
 
         def click_handler(widget, event):
             # if middle click
