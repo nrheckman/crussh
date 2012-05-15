@@ -30,7 +30,18 @@ Install
 The install process is very simple on most distros:
 
 - Install python2, python-gtk2, and python-vte.
-- Run ./crussh.py HOST [HOST ...]
+- Clone and symlink to your bin dir.
+ git clone https://github.com/unit3/crussh.git
+ ln -s crussh/crussh.py ~/bin/crussh
+- Run "crussh HOST [HOST ...]"
+
+Usage Tips
+----------
+
+Doing a clustered paste isn't completely obvious. The following methods will work:
+
+- middle click or shift-insert to paste the X11 selection buffer.
+- control-shift-v to paste the GTK/GNOME clipboard.
 
 Bugs & TODO
 -----------
