@@ -178,6 +178,7 @@ class CruSSH:
         for host in self.Terminals.keys():
             if terminal == self.Terminals[host]:
                 self.LayoutTable.remove(self.Terminals[host])
+                print("Disconnected from " + host)
                 del self.Terminals[host]
         self.reflow(force=True)
 
