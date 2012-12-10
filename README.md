@@ -31,8 +31,10 @@ The install process is very simple on most distros:
 
 - Install python2, python-gtk2, and python-vte.
 - Clone and symlink to your bin dir.
- git clone https://github.com/unit3/crussh.git
- ln -s crussh/crussh.py ~/bin/crussh
+
+    git clone https://github.com/unit3/crussh.git
+    ln -s crussh/crussh.py ~/bin/crussh
+
 - Run "crussh HOST [HOST ...]"
 
 Usage Tips
