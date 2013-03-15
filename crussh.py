@@ -175,11 +175,15 @@ class CruSSH:
     def removeTerminal(self, terminal):
         # brute force search since we don't actually know the hostname from the
         # terminal object. this is an infrequent operation, so it should be fine.
+        for menuitem in self.ActiveHostsMenu.get_children():
+            if terminal.get_tooltip_text() == menuitem.get_label():
+                self.ActiveHostsMenu.remove(menuitem)
         for host in self.Terminals.keys():
             if terminal == self.Terminals[host]:
                 self.LayoutTable.remove(self.Terminals[host])
                 print("Disconnected from " + host)
                 del self.Terminals[host]
+
         self.reflow(force=True)
 
     def initGUI(self):
@@ -213,7 +217,7 @@ class CruSSH:
             self.Terminals[host].copy_input = checkitem.get_active()
         ActiveHostsItem = gtk.MenuItem(label="Active Hosts")
         ActiveHostsItem.set_submenu(self.ActiveHostsMenu)
-        hosts = sorted(self.Terminals.keys(), reverse=True)
+        hosts = sorted(self.Terminals.keys(), reverse=False)
         for host in hosts:
             hostitem = gtk.CheckMenuItem(label=host)
             hostitem.set_active(True)
