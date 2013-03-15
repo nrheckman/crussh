@@ -358,7 +358,15 @@ if __name__ == "__main__":
         epilog="* NOTE: You can pass options to ssh if you add '--' before your list of hosts")
     parser.add_argument("--ssh", dest='ssh', default="/usr/bin/ssh",
         help="specify the SSH executable to use (default: %(default)s)")
+    parser.add_argument("--hosts-file", "-f", dest='hosts_file', default="",
+        help="A file containing a list of hosts to connect to.")
     (args, hosts) = parser.parse_known_args()
+
+    # load hosts from file, if available
+    if args.hosts_file != "":
+        # hostnames are assumed to be whitespace separated
+        extra_hosts = open(args.hosts_file, 'r').read().split()
+        hosts.extend(extra_hosts)
 
     if len(hosts) == 0:
         parser.print_usage()
