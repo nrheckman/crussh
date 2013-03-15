@@ -261,7 +261,7 @@ class CruSSH:
         def feed_paste(widget):
             for host in self.Terminals:
                 if self.Terminals[host].copy_input:
-                    self.Terminals[host].feed_child(self.Clipboard.wait_for_text())
+                    self.Terminals[host].paste_clipboard()
             self.EntryBox.props.buffer.delete_text(0, -1)
 
         # forward key events to all terminals with copy_input set
@@ -271,7 +271,7 @@ class CruSSH:
             if (event.type == gtk.gdk.KEY_PRESS) \
             and (event.state & gtk.gdk.CONTROL_MASK == gtk.gdk.CONTROL_MASK) \
             and (event.state & gtk.gdk.SHIFT_MASK == gtk.gdk.SHIFT_MASK) \
-            and (event.keyval == 86):
+            and (event.keyval == gtk.gdk.keyval_from_name('V')):
                 feed_paste(widget)
             else:
                 # propagate to every terminal
@@ -308,6 +308,21 @@ class CruSSH:
         except:
             pass
 
+        def handle_copy_paste(widget, event):
+            self.EntryBox.props.buffer.delete_text(0, -1)
+            # check for paste key shortcut (ctl-shift-v)
+            if (event.type == gtk.gdk.KEY_PRESS) \
+            and (event.state & gtk.gdk.CONTROL_MASK == gtk.gdk.CONTROL_MASK) \
+            and (event.state & gtk.gdk.SHIFT_MASK == gtk.gdk.SHIFT_MASK) \
+            and (event.keyval == gtk.gdk.keyval_from_name('V')):
+                widget.paste_clipboard()
+                return True
+            elif (event.type == gtk.gdk.KEY_PRESS) \
+            and (event.state & gtk.gdk.CONTROL_MASK == gtk.gdk.CONTROL_MASK) \
+            and (event.state & gtk.gdk.SHIFT_MASK == gtk.gdk.SHIFT_MASK) \
+            and (event.keyval == gtk.gdk.keyval_from_name('C')):
+                widget.copy_clipboard()
+                return True
         # init all terminals
         for host in hosts:
             terminal = vte.Terminal()
@@ -321,6 +336,8 @@ class CruSSH:
             terminal.fork_command(command=cmd[0], argv=cmd)
             # track whether we mirror output to this terminal
             terminal.copy_input = True
+            # attach copy/paste handler
+            terminal.connect("key_press_event", handle_copy_paste)
             self.Terminals[host] = terminal
 
             # hook terminals so they reflow layout on exit
