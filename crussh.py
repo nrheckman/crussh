@@ -17,6 +17,8 @@ except:
     print >>sys.stderr, "Missing Python GTK2 bindings."
     sys.exit(1)
 
+from EntryDialog import EntryDialog
+
 try:
     import vte
 except:
@@ -126,7 +128,7 @@ class CruSSH:
         "min-height": 24,
         "font": "Ubuntu Mono Bold 10",
         "start-maximized": False
-        }
+    }
 
     ### State Vars ###
     Terminals = {}
@@ -180,6 +182,39 @@ class CruSSH:
             self.reflowTable(cols, rows)
         self.MainWin.show_all()
 
+    def addHost(self, host):
+        def handle_copy_paste(widget, event):
+            self.EntryBox.props.buffer.delete_text(0, -1)
+            # check for paste key shortcut (ctl-shift-v)
+            if (event.type == gtk.gdk.KEY_PRESS) \
+            and (event.state & gtk.gdk.CONTROL_MASK == gtk.gdk.CONTROL_MASK) \
+            and (event.state & gtk.gdk.SHIFT_MASK == gtk.gdk.SHIFT_MASK) \
+            and (event.keyval == gtk.gdk.keyval_from_name('V')):
+                widget.paste_clipboard()
+                return True
+            elif (event.type == gtk.gdk.KEY_PRESS) \
+            and (event.state & gtk.gdk.CONTROL_MASK == gtk.gdk.CONTROL_MASK) \
+            and (event.state & gtk.gdk.SHIFT_MASK == gtk.gdk.SHIFT_MASK) \
+            and (event.keyval == gtk.gdk.keyval_from_name('C')):
+                widget.copy_clipboard()
+                return True
+        terminal = vte.Terminal()
+        # TODO: disable only this terminal widget on child exit
+        # v.connect("child-exited", lambda term: gtk.main_quit())
+        cmd_str = self.ssh_cmd
+        if self.ssh_args is not None:
+            cmd_str += " " + self.ssh_args
+        cmd_str += " " + host
+        cmd = cmd_str.split(' ')
+        terminal.fork_command(command=cmd[0], argv=cmd)
+        # track whether we mirror output to this terminal
+        terminal.copy_input = True
+        # attach copy/paste handler
+        terminal.connect("key_press_event", handle_copy_paste)
+        self.Terminals[host] = terminal
+        # hook terminals so they reflow layout on exit
+        self.Terminals[host].connect("child-exited", self.removeTerminal)
+
     def configTerminals(self):
         for host in self.Terminals:
             terminal = self.Terminals[host]
@@ -219,10 +254,24 @@ class CruSSH:
         MainMenuBar = gtk.MenuBar()
         MainVBox.pack_start(MainMenuBar, fill=True, expand=False)
 
+        def add_host_handler(self, base):
+            diag = EntryDialog(buttons=gtk.BUTTONS_OK, type=gtk.MESSAGE_QUESTION,
+                message_format="Hostname to add:")
+            print "test"
+            host = diag.run()
+            if len(host) > 0:
+                base.addHost(host)
+            diag.destroy()
+            base.reflow(force=True)
+
         FileItem = gtk.MenuItem(label="File")
         FileMenu = gtk.Menu()
         FileItem.set_submenu(FileMenu)
-        QuitItem = gtk.MenuItem(label="Quit")
+        AddHostItem = gtk.MenuItem(label="Add Host")
+        AddHostItem.connect("activate", add_host_handler, self)
+        FileMenu.append(AddHostItem)
+        FileMenu.append(gtk.SeparatorMenuItem())
+        QuitItem = gtk.ImageMenuItem(gtk.STOCK_QUIT)
         QuitItem.connect("activate", lambda discard: gtk.main_quit())
         FileMenu.append(QuitItem)
         MainMenuBar.append(FileItem)
@@ -317,7 +366,10 @@ class CruSSH:
         # give EntryBox default focus on init
         self.EntryBox.props.has_focus = True
 
+
     def __init__(self, hosts, ssh_cmd="/usr/bin/ssh", ssh_args=None):
+        self.ssh_cmd = ssh_cmd
+        self.ssh_args = ssh_args
         # load existing config file, if present
         try:
             # merge dicts to allow upgrade from old configs
@@ -326,40 +378,9 @@ class CruSSH:
         except:
             pass
 
-        def handle_copy_paste(widget, event):
-            self.EntryBox.props.buffer.delete_text(0, -1)
-            # check for paste key shortcut (ctl-shift-v)
-            if (event.type == gtk.gdk.KEY_PRESS) \
-            and (event.state & gtk.gdk.CONTROL_MASK == gtk.gdk.CONTROL_MASK) \
-            and (event.state & gtk.gdk.SHIFT_MASK == gtk.gdk.SHIFT_MASK) \
-            and (event.keyval == gtk.gdk.keyval_from_name('V')):
-                widget.paste_clipboard()
-                return True
-            elif (event.type == gtk.gdk.KEY_PRESS) \
-            and (event.state & gtk.gdk.CONTROL_MASK == gtk.gdk.CONTROL_MASK) \
-            and (event.state & gtk.gdk.SHIFT_MASK == gtk.gdk.SHIFT_MASK) \
-            and (event.keyval == gtk.gdk.keyval_from_name('C')):
-                widget.copy_clipboard()
-                return True
         # init all terminals
         for host in hosts:
-            terminal = vte.Terminal()
-            # TODO: disable only this terminal widget on child exit
-            # v.connect("child-exited", lambda term: gtk.main_quit())
-            cmd_str = ssh_cmd
-            if ssh_args is not None:
-                cmd_str += " " + ssh_args
-            cmd_str += " " + host
-            cmd = cmd_str.split(' ')
-            terminal.fork_command(command=cmd[0], argv=cmd)
-            # track whether we mirror output to this terminal
-            terminal.copy_input = True
-            # attach copy/paste handler
-            terminal.connect("key_press_event", handle_copy_paste)
-            self.Terminals[host] = terminal
-
-            # hook terminals so they reflow layout on exit
-            self.Terminals[host].connect("child-exited", self.removeTerminal)
+            self.addHost(host)
         # configure all terminals
         self.configTerminals()
         # reflow after reconfig for font size changes
