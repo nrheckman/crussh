@@ -45,6 +45,9 @@ class CruSSHConf:
     def height_hook(self, spinbutton):
         self.Config["min-height"] = spinbutton.get_value_as_int()
 
+    def maximized_hook(self, checkbutton):
+        self.Config["start-maximized"] = checkbutton.get_active()
+
     ### GUI Objects ###
     def initGUI(self, save_func=None):
         self.MainWin.set_modal(True)
@@ -53,6 +56,20 @@ class CruSSHConf:
         MainBox = gtk.VBox(spacing=5)
         MainBox.props.border_width = 5
         self.MainWin.add(MainBox)
+
+        GlobalConfFrame = gtk.Frame(label="Global Options")
+        GlobalConfTable = gtk.Table(1, 2)
+        GlobalConfTable.props.border_width = 5
+        GlobalConfTable.props.row_spacing = 5
+        GlobalConfTable.props.column_spacing = 5
+        GlobalConfFrame.add(GlobalConfTable)
+        MainBox.pack_start(GlobalConfFrame)
+
+        GlobalConfTable.attach(gtk.Label("Start Maximized:"), 1, 2, 1, 2, gtk.EXPAND)
+        MaximizedConf = gtk.CheckButton()
+        MaximizedConf.set_active(self.Config["start-maximized"])
+        MaximizedConf.connect("toggled", self.maximized_hook)
+        GlobalConfTable.attach(MaximizedConf, 2, 3, 1, 2, gtk.EXPAND)
 
         TermConfFrame = gtk.Frame(label="Terminal Options")
         TermConfTable = gtk.Table(3, 2)
@@ -107,7 +124,8 @@ class CruSSH:
     Config = {
         "min-width": 80,
         "min-height": 24,
-        "font": "Ubuntu Mono Bold 10"
+        "font": "Ubuntu Mono Bold 10",
+        "start-maximized": False
         }
 
     ### State Vars ###
@@ -346,6 +364,8 @@ class CruSSH:
         self.configTerminals()
         # reflow after reconfig for font size changes
         self.initGUI()
+        if self.Config["start-maximized"]:
+            self.MainWin.maximize()
         self.reflow(force=True)
 
 if __name__ == "__main__":
