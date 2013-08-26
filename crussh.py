@@ -119,6 +119,64 @@ class CruSSHConf:
         self.initGUI(save_func)
 
 
+### Hosts Mask Dialog ###
+class HostsMask:
+    Terminals = {}
+    MainWin = gtk.Window()
+
+    def toggle_func(self, checkitem, host):
+        self.Terminals[host].copy_input = checkitem.get_active()
+
+    def InitGUI(self):
+        self.MainWin.set_modal(True)
+        self.MainWin.props.allow_grow = False
+
+        MainBox = gtk.VBox(spacing=5)
+        MainBox.props.border_width = 5
+        self.MainWin.add(MainBox)
+
+        # determine optimal table dimensions
+        cols = int(math.sqrt(len(self.Terminals)))
+        rows = int(math.ceil(len(self.Terminals) / cols))
+
+        HostsConfFrame = gtk.Frame(label="Active Terminals")
+        HostsConfTable = gtk.Table(rows, cols)
+        HostsConfTable.props.border_width = 5
+        HostsConfTable.props.row_spacing = 5
+        HostsConfTable.props.column_spacing = 5
+        HostsConfFrame.add(HostsConfTable)
+
+        i = 0
+        hosts = sorted(self.Terminals.keys(), reverse=False)
+        for host in hosts:
+            HostTable = gtk.Table(1, 2)
+            HostTable.props.column_spacing = 2
+            HostTable.attach(gtk.Label(host), 0, 1, 0, 1, gtk.EXPAND)
+            HostCheckbox = gtk.CheckButton()
+            HostCheckbox.set_active(self.Terminals[host].copy_input)
+            HostCheckbox.connect("toggled", self.toggle_func, host)
+            HostTable.attach(HostCheckbox, 1, 2, 0, 1, gtk.EXPAND)
+            row = i / cols
+            col = i % cols
+            HostsConfTable.attach(HostTable, col,  col+1, row, row+1, gtk.EXPAND)
+            i += 1
+
+        MainBox.pack_start(HostsConfFrame)
+
+        OkButton = gtk.Button(stock=gtk.STOCK_OK)
+        MainBox.pack_start(OkButton, fill=False, expand=False)
+
+        # wire up behaviour
+        OkButton.connect("clicked", lambda discard: self.MainWin.destroy())
+
+        self.MainWin.show_all()
+
+    def __init__(self, terminals=None):
+        if hosts is not None:
+            self.Terminals = terminals
+            self.InitGUI()
+
+
 ### CruSSH! ###
 class CruSSH:
     ### Config Vars ###
@@ -141,7 +199,6 @@ class CruSSH:
     LayoutTable = gtk.Table()
     EntryBox = gtk.Entry()
     Clipboard = gtk.Clipboard()
-    ActiveHostsMenu = gtk.Menu()
 
     ### Methods ###
     def reflowTable(self, cols=1, rows=1):
@@ -226,11 +283,6 @@ class CruSSH:
             self.TermMinHeight = (terminal.get_char_height() * self.Config["min-height"]) + terminal.get_padding()[1]
 
     def removeTerminal(self, terminal):
-        # brute force search since we don't actually know the hostname from the
-        # terminal object. this is an infrequent operation, so it should be fine.
-        for menuitem in self.ActiveHostsMenu.get_children():
-            if terminal.get_tooltip_text() == menuitem.get_label():
-                self.ActiveHostsMenu.remove(menuitem)
         for host in self.Terminals.keys():
             if terminal == self.Terminals[host]:
                 self.LayoutTable.remove(self.Terminals[host])
@@ -256,7 +308,7 @@ class CruSSH:
 
         def add_host_handler(self, base):
             diag = EntryDialog(buttons=gtk.BUTTONS_OK, type=gtk.MESSAGE_QUESTION,
-                message_format="Hostname to add:")
+                               message_format="Hostname to add:")
             print "test"
             host = diag.run()
             if len(host) > 0:
@@ -280,16 +332,8 @@ class CruSSH:
         EditMenu = gtk.Menu()
         EditItem.set_submenu(EditMenu)
 
-        def toggle_func(checkitem, host):
-            self.Terminals[host].copy_input = checkitem.get_active()
         ActiveHostsItem = gtk.MenuItem(label="Active Hosts")
-        ActiveHostsItem.set_submenu(self.ActiveHostsMenu)
-        hosts = sorted(self.Terminals.keys(), reverse=False)
-        for host in hosts:
-            hostitem = gtk.CheckMenuItem(label=host)
-            hostitem.set_active(True)
-            hostitem.connect("toggled", toggle_func, host)
-            self.ActiveHostsMenu.append(hostitem)
+        ActiveHostsItem.connect("activate", lambda discard: HostsMask(self.Terminals))
 
         EditMenu.append(ActiveHostsItem)
         PrefsItem = gtk.MenuItem(label="Preferences")
@@ -336,10 +380,10 @@ class CruSSH:
             self.EntryBox.props.buffer.delete_text(0, -1)
             # check for paste key shortcut (ctl-shift-v)
             if (event.type == gtk.gdk.KEY_PRESS) \
-            and (event.state & gtk.gdk.CONTROL_MASK == gtk.gdk.CONTROL_MASK) \
-            and (event.state & gtk.gdk.SHIFT_MASK == gtk.gdk.SHIFT_MASK) \
-            and (event.keyval == gtk.gdk.keyval_from_name('V')):
-                feed_paste(widget)
+                and (event.state & gtk.gdk.CONTROL_MASK == gtk.gdk.CONTROL_MASK) \
+                and (event.state & gtk.gdk.SHIFT_MASK == gtk.gdk.SHIFT_MASK) \
+                and (event.keyval == gtk.gdk.keyval_from_name('V')):
+                    feed_paste(widget)
             else:
                 # propagate to every terminal
                 for host in self.Terminals:
@@ -366,7 +410,6 @@ class CruSSH:
         # give EntryBox default focus on init
         self.EntryBox.props.has_focus = True
 
-
     def __init__(self, hosts, ssh_cmd="/usr/bin/ssh", ssh_args=None):
         self.ssh_cmd = ssh_cmd
         self.ssh_args = ssh_args
@@ -388,6 +431,7 @@ class CruSSH:
         if self.Config["start-maximized"]:
             self.MainWin.maximize()
         self.reflow(force=True)
+
 
 if __name__ == "__main__":
     import argparse
