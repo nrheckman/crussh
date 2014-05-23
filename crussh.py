@@ -235,6 +235,9 @@ class CruSSH:
         rows = int(math.ceil(num_terms / float(cols)))
         if rows < 1:
             rows = 1
+        # ensure we evenly distribute terminals per row.
+        cols = int(math.ceil(num_terms / float(rows)))
+
         if (self.LayoutTable.props.n_columns != cols) or (self.LayoutTable.props.n_rows != rows) or force:
             self.reflowTable(cols, rows)
         self.MainWin.show_all()
