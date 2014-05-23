@@ -33,7 +33,7 @@ The install process is very simple on most distros:
 - Clone and symlink to your bin dir.
 
 ```bash
-git clone https://github.com/unit3/crussh.git
+git clone https://github.com/nergdron/crussh.git
 ln -s crussh/crussh.py ~/bin/crussh
 ```
 
@@ -51,12 +51,12 @@ Bugs & TODO
 -----------
 
 To see current issues, report problems, and see plans for features,
-see the [crussh GitHub issues page](https://github.com/unit3/crussh/issues).
+see the [crussh GitHub issues page](https://github.com/nergdron/crussh/issues).
 
 Copyright and License
 ---------------------
 
-crussh is copyright 2012 by Graeme Humphries <graeme@sudo.ca>.
+crussh is copyright 2012 by Graeme Nordgren <graeme@sudo.ca>.
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
