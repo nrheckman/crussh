@@ -56,7 +56,7 @@ see the [crussh GitHub issues page](https://github.com/nergdron/crussh/issues).
 Copyright and License
 ---------------------
 
-crussh is copyright 2012 by Graeme Nordgren <graeme@sudo.ca>.
+crussh is copyright 2012-2016 by Tessa Nordgren <tessa@sudo.ca>.
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
