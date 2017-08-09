@@ -1,7 +1,7 @@
-#!/usr/bin/env python
+#!/usr/bin/python
 
 # A cssh replacement written in Python / GTK.
-# (c)2012 - Graeme Humphries <graeme@sudo.ca>.
+# (c)2012-2017 - Tessa Nordgren <tessa@sudo.ca>.
 # Released under the GPL, version 3: http://www.gnu.org/licenses/
 
 # Requires: python-gtk2 python-vte
@@ -10,20 +10,11 @@ import sys
 import math
 import json
 import os.path
-
-try:
-    import gtk
-except:
-    print >>sys.stderr, "Missing Python GTK2 bindings."
-    sys.exit(1)
-
+import pygtk
+pygtk.require('2.0')
+import gtk
+import vte
 from EntryDialog import EntryDialog
-
-try:
-    import vte
-except:
-    print >>sys.stderr, "Missing Python VTE bindings."
-    sys.exit(1)
 
 
 ### Config Dialog ###
