@@ -435,7 +435,7 @@ if __name__ == "__main__":
         description="Connect to multiple hosts in parallel.",
         usage="%(prog)s [OPTIONS] [--] HOST [HOST ...]",
         epilog="* NOTE: You can pass options to ssh if you add '--' before your list of hosts")
-    parser.add_argument("--ssh", dest='ssh', default="/usr/bin/ssh",
+    parser.add_argument("--ssh", "-s", dest='ssh', default="/usr/bin/ssh",
         help="specify the SSH executable to use (default: %(default)s)")
     parser.add_argument("--hosts-file", "-f", dest='hosts_file', default="",
         help="A file containing a list of hosts to connect to.")
