@@ -1,10 +1,8 @@
 #!/usr/bin/python
 
 # A cssh replacement written in Python / GTK.
-# (c)2012-2017 - Tessa Nordgren <tessa@sudo.ca>.
+# (c)2012-2019 - Tessa Nordgren <tessa@sudo.ca>.
 # Released under the GPL, version 3: http://www.gnu.org/licenses/
-
-# Requires: python-gtk2 python-vte
 
 import sys
 import math
@@ -434,7 +432,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description="Connect to multiple hosts in parallel.",
         usage="%(prog)s [OPTIONS] [--] HOST [HOST ...]",
-        epilog="* NOTE: You can pass options to ssh if you add '--' before your list of hosts")
+        epilog="* NOTE: options before '--' will be passed directly to the SSH client.")
     parser.add_argument("--ssh", "-s", dest='ssh', default="/usr/bin/ssh",
         help="specify the SSH executable to use (default: %(default)s)")
     parser.add_argument("--hosts-file", "-f", dest='hosts_file', default="",
